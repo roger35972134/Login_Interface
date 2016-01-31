@@ -1,11 +1,18 @@
 package com.example.roger.parsetest;
 
+import android.app.Notification;
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mrengineer13.snackbar.SnackBar;
 import com.parse.FindCallback;
 import com.parse.Parse;
 import com.parse.ParseInstallation;
@@ -25,7 +32,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText edt_Id;
     @Bind(R.id.edtpassword)
     EditText edt_password;
-
+    TextView toastText;
     @OnClick(R.id.signup)
     void onSignUpClick() {
         Intent intent = new Intent(this, SignUpActivity.class);
@@ -42,14 +49,14 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void done(List<ParseObject> objects, com.parse.ParseException e) {
                 if (e == null&& objects.size()!=0) {
-                    Toast.makeText(LoginActivity.this, "Login success", Toast.LENGTH_LONG).show();
-                    //Intent intent=new Intent(LoginActivity.this,MainActivity.class);
-                    //startActivity(intent);
+                    setToast("Login success");
+                    Intent intent=new Intent(LoginActivity.this,MainActivity.class);
+                    startActivity(intent);
                 } else if(e==null) {
                     //Toast.makeText(MainActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
-                    Toast.makeText(LoginActivity.this, "Account error", Toast.LENGTH_LONG).show();
+                    setToast("Account error");
                 } else {
-                    Toast.makeText(LoginActivity.this, "Server error",Toast.LENGTH_LONG).show();
+                    setToast("Server error");
                 }
             }
         });
@@ -72,6 +79,23 @@ public class LoginActivity extends AppCompatActivity {
             //do nothing
         }
 
+    }
+    public void setSnackBar(String message){
+        new SnackBar.Builder(this)
+                    .withMessage(message)
+                    .withActionMessage("UNDO")
+                    .show();
+    }
+    public void setToast(String message)
+    {
+        LayoutInflater inflater=getLayoutInflater();
+        View layout=inflater.inflate(R.layout.layout_toast,(ViewGroup)findViewById(R.id.custom_toast));
+        toastText=(TextView)layout.findViewById(R.id.toastText);
+        toastText.setText(message);
+        Toast toast=new Toast(getApplicationContext());
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
     }
 
 }

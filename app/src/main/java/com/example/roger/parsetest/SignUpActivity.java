@@ -1,16 +1,19 @@
 package com.example.roger.parsetest;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nispok.snackbar.SnackbarManager;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -31,6 +34,10 @@ public class SignUpActivity extends Activity {
     EditText signPw;
     @Bind(R.id.signEmail)
     EditText signEmail;
+    TextView toastText;
+    //custom toast
+
+
 
     @OnClick(R.id.imgCheck)
     void onClick() {
@@ -66,12 +73,13 @@ public class SignUpActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
+
     }
 
     public void Check(String Id, String Password, String Email) {
         flag = true;
         if (Id.isEmpty() && Password.isEmpty() && Email.isEmpty()) {
-            Toast.makeText(this, "You should fill all the slots", Toast.LENGTH_LONG).show();
+            setToast("You should fill all the slots");
             flag = false;
         }
         ParseQuery query = ParseQuery.getQuery("UserData");
@@ -79,24 +87,36 @@ public class SignUpActivity extends Activity {
         query.findInBackground(new FindCallback<ParseObject>() {
             public void done(List<ParseObject> objects, ParseException e) {
                 if (objects.size() != 0) {
-                    Toast.makeText(SignUpActivity.this, "ID have been used by another user", Toast.LENGTH_LONG).show();
+                    setToast("ID have been used by another user");
                     flag = false;
                 } else if (e != null) {
-                    Toast.makeText(SignUpActivity.this, "Server error", Toast.LENGTH_LONG).show();
+                    setToast("Server error");
                 }
             }
         });
     }
 
 
+    @SuppressLint("SetTextI18n")
     public void updateData(String ID, String PW, String Email) {
         ParseObject userdata = new ParseObject("UserData");
         userdata.put("Id", ID);
         userdata.put("password", PW);
         userdata.put("email", Email);
         userdata.saveInBackground();
-        Toast.makeText(SignUpActivity.this, "Sign up success", Toast.LENGTH_LONG).show();
+        setToast("Sign up success");
 
+    }
+    public void setToast(String message)
+    {
+        LayoutInflater inflater=getLayoutInflater();
+        View layout=inflater.inflate(R.layout.layout_toast,(ViewGroup)findViewById(R.id.custom_toast));
+        toastText=(TextView)layout.findViewById(R.id.toastText);
+        toastText.setText(message);
+        Toast toast=new Toast(getApplicationContext());
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
     }
 }
 
