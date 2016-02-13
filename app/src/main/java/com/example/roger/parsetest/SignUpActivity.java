@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
@@ -34,9 +35,10 @@ public class SignUpActivity extends Activity {
     EditText signPw;
     @Bind(R.id.signEmail)
     EditText signEmail;
+    @Bind(R.id.signUp_title)
+    TextView signUp_title;
     TextView toastText;
     //custom toast
-
 
 
     @OnClick(R.id.imgCheck)
@@ -73,7 +75,8 @@ public class SignUpActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
-
+        Typeface font=Typeface.createFromAsset(getAssets(),"Bigfish.ttf");
+        signUp_title.setTypeface(font);
     }
 
     public void Check(String Id, String Password, String Email) {
@@ -103,17 +106,20 @@ public class SignUpActivity extends Activity {
         userdata.put("Id", ID);
         userdata.put("password", PW);
         userdata.put("email", Email);
+        userdata.put("bank",2000);
+        userdata.put("cash",1000);
+        userdata.put("point",200);
         userdata.saveInBackground();
         setToast("Sign up success");
 
     }
-    public void setToast(String message)
-    {
-        LayoutInflater inflater=getLayoutInflater();
-        View layout=inflater.inflate(R.layout.layout_toast,(ViewGroup)findViewById(R.id.custom_toast));
-        toastText=(TextView)layout.findViewById(R.id.toastText);
+
+    public void setToast(String message) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.custom_toast));
+        toastText = (TextView) layout.findViewById(R.id.toastText);
         toastText.setText(message);
-        Toast toast=new Toast(getApplicationContext());
+        Toast toast = new Toast(getApplicationContext());
         toast.setDuration(Toast.LENGTH_LONG);
         toast.setView(layout);
         toast.show();

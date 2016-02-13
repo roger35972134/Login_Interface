@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -20,7 +21,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -32,9 +35,16 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.parse.FindCallback;
+import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.SaveCallback;
+
+import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -43,39 +53,36 @@ import butterknife.OnClick;
 public class MapsFragment extends Fragment implements LocationListener {
     String bestProvider;
     GoogleMap map;
-    int positionCount = 0;
-    float zoom = 17;
+    float zoom = 18;
     private LocationManager locationManager;
+    EditText edtPrice, edtName;
+    String setBuildName, PlayerId;
     @Bind(R.id.mapview)
     MapView mapView;
-    EditText edtPrice;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.maps_fragment, container, false);
         ButterKnife.bind(this, v);
-        // Gets the MapView from the XML layout and creates it
         mapView.onCreate(savedInstanceState);
+        Bundle bundle = getArguments();
+        PlayerId = bundle.getString("PLAYER_ID");
+        InitMarker();
 
         // Gets to GoogleMap from the MapView and does initialization stuff
         map = mapView.getMap();
-        map.getUiSettings().setMyLocationButtonEnabled(false);
+        map.getUiSettings().setMyLocationButtonEnabled(true);
         map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                if (onCreateDalog() != -1) {
-                    updateData(positionCount, latLng);
-                    addMarker(String.valueOf(positionCount), latLng);
-                    //Toast.makeText(MapsFragment.this.getContext(), latLng.latitude + " , " + latLng.longitude, Toast.LENGTH_LONG);
-                    positionCount++;
-                }
+
+                onCreateSetPriceDialog(latLng);
             }
         });
 
         locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
         bestProvider = locationManager.getBestProvider(criteria, true);
-        // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
         MapsInitializer.initialize(this.getActivity());
         return v;
     }
@@ -94,8 +101,25 @@ public class MapsFragment extends Fragment implements LocationListener {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        locationManager.requestLocationUpdates(bestProvider, 5000, 1, this);
+        locationManager.requestLocationUpdates(bestProvider, 5000, 20, this);
         super.onResume();
+    }
+
+    public void onPause() {
+        if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.removeUpdates(this);
+        super.onPause();
+        mapView.onPause();
     }
 
     @Override
@@ -110,7 +134,58 @@ public class MapsFragment extends Fragment implements LocationListener {
         mapView.onLowMemory();
     }
 
-    public void addMarker(String title, LatLng latLng) {
+    public void InitMarker() {
+        ParseQuery query = ParseQuery.getQuery("Map");
+        /*try {
+            List<ParseObject> objects = query.find();
+            if (!objects.isEmpty()) {
+                for (int i = 0; i < objects.size(); i++) {
+                    ParseObject parseObject = objects.get(i);
+                    LatLng latLng = new LatLng(parseObject.getNumber("latitude").doubleValue()
+                            , parseObject.getNumber("longitude").doubleValue());
+                    addingMarker(parseObject.getString("name"), latLng);
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }*/
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> objects, ParseException e) {
+                if (e == null && !objects.isEmpty()) {
+                    for (int i = 0; i < objects.size(); i++) {
+                        ParseObject parseObject = objects.get(i);
+                        LatLng latLng = new LatLng(parseObject.getNumber("latitude").doubleValue()
+                                , parseObject.getNumber("longitude").doubleValue());
+                        addingMarker(parseObject.getString("name"), latLng);
+                    }
+                }
+            }
+        });
+    }
+
+    public void checkMatchPoint(LatLng latLng) {
+        ParseQuery query = ParseQuery.getQuery("Map");
+        query.whereGreaterThanOrEqualTo("latitude", latLng.latitude - 0.00025)
+                .whereLessThanOrEqualTo("latitude", latLng.latitude + 0.00025)
+                .whereGreaterThanOrEqualTo("longitude", latLng.longitude - 0.00025)
+                .whereLessThanOrEqualTo("longitude", latLng.longitude + 0.00025);
+        try {
+            List<ParseObject> objects = query.find();
+            if (!objects.isEmpty()) {
+                ParseObject object = objects.get(0);
+                String pathName = object.getString("name");
+                String matchPrice=object.getNumber("price").toString();
+                if (object.getString("owner") == null) {
+                        onCreateBuyBuildingDialog(pathName,matchPrice);
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addingMarker(String title, LatLng latLng) {
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng)
                 .title(title)
@@ -139,10 +214,7 @@ public class MapsFragment extends Fragment implements LocationListener {
             return;
         }
         map.setMyLocationEnabled(true);
-        //addMarker(String.valueOf(positionCount),Point);
-
-
-        //positionCount++;
+        checkMatchPoint(Point);
     }
 
     @Override
@@ -160,42 +232,161 @@ public class MapsFragment extends Fragment implements LocationListener {
 
     }
 
-    int price = -1;
+    int buildPrice = -1;
+    boolean nameDuplicate;
 
-    public int onCreateDalog() {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        // Get the layout inflater
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        View dialog = inflater.inflate(R.layout.layout_dialog, null);
-        // Inflate and set the layout for the dialog
-        // Pass null as the parent view because its going in the dialog layout
-        edtPrice = (EditText) dialog.findViewById(R.id.edtPrice);
-        builder.setView(dialog)
-                // Add action buttons
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        String p = edtPrice.getText().toString();
-                        price = Integer.parseInt(p);
-                        //price=100;
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        price = -1;
-                    }
-                })
-                .create().show();
-        return price;
+    public void checkDuplicate(final String name) throws ParseException {
+        nameDuplicate = false;
+        ParseQuery query = ParseQuery.getQuery("Map");
+        query.whereEqualTo("name", name);
+        if (!query.find().isEmpty())
+            nameDuplicate = true;
     }
 
-    public void updateData(int pathNumber, LatLng latLng) {
+    public void onCreateSetPriceDialog(final LatLng latLng) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View dialog = inflater.inflate(R.layout.layout_dialog_setprice, null);
+        ImageButton checkbtn = (ImageButton) dialog.findViewById(R.id.setprice_positive_button);
+        ImageButton cancelbtn = (ImageButton) dialog.findViewById(R.id.setprice_negative_button);
+        edtPrice = (EditText) dialog.findViewById(R.id.edtPrice);
+        edtName = (EditText) dialog.findViewById(R.id.edtName);
+
+
+        builder.setView(dialog);
+        final AlertDialog alertDialog = builder.create();
+        alertDialog.setCanceledOnTouchOutside(false);
+        checkbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (edtPrice.getText().toString().equals("") || edtName.getText().toString().equals("")) {
+                    Toast.makeText(MapsFragment.this.getContext(), "Item can't be empty", Toast.LENGTH_LONG);
+                } else if (nameDuplicate) {
+                    edtName.setText("");
+                    Toast.makeText(MapsFragment.this.getContext(), "Name had been used", Toast.LENGTH_LONG).show();
+                } else {
+                    buildPrice = Integer.parseInt(edtPrice.getText().toString());
+                    setBuildName = edtName.getText().toString();
+                    addingMarker(setBuildName, latLng);
+                    alertDialog.dismiss();
+                    updateData(latLng);
+                }
+
+                try {
+                    checkDuplicate(edtName.getText().toString());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        cancelbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buildPrice = -1;
+                alertDialog.dismiss();
+            }
+        });
+        alertDialog.show();
+    }
+
+    int Bank, Price;
+
+    public void onCreateBuyBuildingDialog(final String pathName,String matchPrice){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.layout_dialog_buybuilding, null);
+
+        getBankMoney();
+        getPrice(pathName);
+        ImageButton positive = (ImageButton) dialogView.findViewById(R.id.positive_button);
+        ImageButton negative = (ImageButton) dialogView.findViewById(R.id.negative_button);
+        TextView p = (TextView) dialogView.findViewById(R.id.buildingPrice);
+        TextView n = (TextView) dialogView.findViewById(R.id.buildingName);
+        n.setText(pathName);
+        p.setText(matchPrice);
+
+        builder.setView(dialogView);
+        final AlertDialog dialog = builder.create();
+
+
+        positive.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+
+                ParseQuery query = ParseQuery.getQuery("UserData");
+                query.whereEqualTo("Id", PlayerId);
+                try {
+                    List<ParseObject> objects = query.find();
+                    if (!objects.isEmpty()) {
+                        ParseObject object = objects.get(0);
+                        object.put("bank", Bank - Price);
+                        object.save();
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                query = ParseQuery.getQuery("Map");
+                query.whereEqualTo("name", pathName);
+                try {
+                    List<ParseObject> objects = query.find();
+                    ParseObject object = objects.get(0);
+                    object.put("owner", PlayerId);
+                    object.save();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+
+        });
+        negative.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
+    }
+
+    public int getPrice(String pathName) {
+        ParseQuery query = ParseQuery.getQuery("Map");
+        query.whereEqualTo("name", pathName);
+        try {
+            List<ParseObject> objects = query.find();
+            ParseObject object = objects.get(0);
+            Price = object.getInt("price");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return Price;
+    }
+
+    public int getBankMoney() {
+        ParseQuery query = ParseQuery.getQuery("UserData");
+        query.whereEqualTo("Id", PlayerId);
+        try {
+            List<ParseObject> objects = query.find();
+            if (!objects.isEmpty()) {
+                ParseObject object = objects.get(0);
+                Bank = object.getInt("bank");
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return Bank;
+    }
+
+    public void updateData(LatLng latLng) {
         ParseObject mapData = new ParseObject("Map");
-        mapData.put("pathNumber", pathNumber);
         mapData.put("latitude", latLng.latitude);
         mapData.put("longitude", latLng.longitude);
-        mapData.put("price", price);
+        mapData.put("name", setBuildName);
+        mapData.put("price", buildPrice);
         mapData.saveInBackground();
     }
 }

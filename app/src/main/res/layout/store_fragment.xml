@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/side_nav_bar"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/store"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:layout_marginTop="20dp"
+        android:text="Store"
+        android:textColor="#00ffaa"
+        android:textSize="40dp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="80dp">
+
+        <TextView
+            android:id="@+id/store_user_point"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="150"
+            android:textSize="20dp" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+
+            android:src="@drawable/ic_menu_star" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <com.dd.ShadowLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:sl_shadowColor="#AA000000"
+                app:sl_shadowRadius="5dp">
+
+                <ImageButton
+                    android:id="@+id/store_rocket"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/image_button"
+                    android:src="@drawable/rocket81" />
+            </com.dd.ShadowLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="150"
+                    android:textSize="20dp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_menu_star" />
+            </LinearLayout>
+
+            <com.dd.ShadowLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:sl_shadowColor="#AA000000"
+                app:sl_shadowRadius="5dp">
+
+                <ImageButton
+                    android:id="@+id/store_bombs"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/image_button"
+                    android:src="@drawable/bombs" />
+            </com.dd.ShadowLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="50"
+                    android:textSize="20dp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_menu_star" />
+            </LinearLayout>
+
+            <com.dd.ShadowLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:sl_shadowColor="#AA000000"
+                app:sl_shadowRadius="5dp">
+
+                <ImageButton
+                    android:id="@+id/store_dice"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/image_button"
+                    android:src="@drawable/dice" />
+            </com.dd.ShadowLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="30"
+                    android:textSize="20dp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_menu_star" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <com.dd.ShadowLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:sl_shadowColor="#AA000000"
+                app:sl_shadowRadius="5dp">
+
+                <ImageButton
+                    android:id="@+id/store_stop"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/image_button"
+                    android:src="@drawable/stop" />
+            </com.dd.ShadowLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="30"
+                    android:textSize="20dp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_menu_star" />
+            </LinearLayout>
+
+            <com.dd.ShadowLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:sl_shadowColor="#AA000000"
+                app:sl_shadowRadius="5dp">
+
+                <ImageButton
+                    android:id="@+id/store_change_position"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/image_button"
+                    android:src="@drawable/change" />
+            </com.dd.ShadowLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="300"
+                    android:textSize="20dp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_menu_star" />
+            </LinearLayout>
+
+            <com.dd.ShadowLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:sl_shadowColor="#AA000000"
+                app:sl_shadowRadius="5dp">
+
+                <ImageButton
+                    android:id="@+id/store_change_direction"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/image_button"
+                    android:src="@drawable/change_direction" />
+            </com.dd.ShadowLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="50"
+                    android:textSize="20dp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_menu_star" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+
+</LinearLayout>

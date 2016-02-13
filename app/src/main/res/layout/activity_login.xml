@@ -3,18 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#222"
-    tools:context="com.example.roger.parsetest.MainActivity">
+    android:background="@drawable/side_nav_bar"
+    tools:context="com.example.roger.parsetest.MainActivity"
+    >
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_above="@+id/Linear1"
+        android:id="@+id/login_title"
         android:textSize="45dp"
         android:text="Login"
         android:layout_marginBottom="50dp"
         android:fontFamily="sans-serif-medium"
-        android:textColor="#fff"/>
+        android:textColor="#00ffaa"/>
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -26,14 +28,15 @@
         <ImageView
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/ic_account_circle_white_24dp"
+            android:src="@drawable/ic_account"
             android:id="@+id/imgId"
             />
         <EditText
             android:layout_width="200dp"
             android:layout_height="60dp"
             android:id="@+id/edtId"
-            android:textColor="#FFF"
+            android:textSize="24dp"
+            android:textColor="#00FFAA"
             />
     </LinearLayout>
     <LinearLayout
@@ -47,13 +50,15 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:id="@+id/imgPw"
-            android:src="@drawable/ic_vpn_key_white_24dp"
+            android:src="@drawable/ic_key"
+            android:padding="5dp"
             />
         <EditText
             android:layout_width="200dp"
             android:layout_height="60dp"
             android:textSize="24dp"
-            android:id="@+id/edtpassword"/>
+            android:id="@+id/edtpassword"
+            android:textColor="#00ffaa"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"
@@ -68,14 +73,15 @@
             android:layout_height="60dp"
             android:layout_margin="10dp"
             android:id="@+id/signup"
-            android:src="@drawable/ic_create_white_24dp"/>
+            android:src="@drawable/ic_edit_account"/>
         <ImageView
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_below="@+id/Linear2"
             android:layout_margin="10dp"
+            android:padding="5dp"
             android:id="@+id/login"
-            android:src="@drawable/ic_send_white_24dp"/>
+            android:src="@drawable/ic_login"/>
     </LinearLayout>
 
 </RelativeLayout>

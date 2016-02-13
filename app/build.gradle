@@ -30,4 +30,5 @@ dependencies {
     compile 'com.github.mrengineer13:snackbar:1.2.0'
     compile 'de.hdodenhof:circleimageview:2.0.0'
     compile 'com.google.android.gms:play-services:8.4.0'
+    compile 'com.github.dmytrodanylyk.shadow-layout:library:1.0.3'
 }

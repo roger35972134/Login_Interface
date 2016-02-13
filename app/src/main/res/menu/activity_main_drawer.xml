@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/dice_rolling"
+            android:icon="@drawable/dice"
+            android:title="Dice"/>
         <item
             android:id="@+id/nav_map"
             android:icon="@drawable/ic_menu_map"
@@ -13,25 +16,24 @@
         <item
             android:id="@+id/nav_store"
             android:icon="@drawable/ic_menu_store"
-            android:title="Store"/>
+            android:title="Store" />
+
+        <item android:title="Imformation">
+            <menu>
+                <item
+                    android:id="@+id/nav_profile"
+                    android:icon="@drawable/ic_menu_profile"
+                    android:title="Profile" />
+
+                <item
+                    android:id="@+id/nav_players"
+                    android:icon="@drawable/ic_menu_players"
+                    android:title="Players" />
+                <item
+                    android:id="@+id/nav_setting"
+                    android:icon="@drawable/ic_menu_setting"
+                    android:title="Setting" />
+            </menu>
+        </item>
     </group>
-
-    <item android:title="Imformation">
-        <menu>
-            <item
-                android:id="@+id/nav_profile"
-                android:icon="@drawable/ic_menu_profile"
-                android:title="My Information" />
-
-            <item
-                android:id="@+id/nav_players"
-                android:icon="@drawable/ic_menu_players"
-                android:title="Players" />
-            <item
-                android:id="@+id/nav_setting"
-                android:icon="@drawable/ic_menu_setting"
-                android:title="Setting" />
-        </menu>
-    </item>
-
 </menu>

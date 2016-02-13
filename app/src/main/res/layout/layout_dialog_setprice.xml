@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:id="@+id/priceDialog"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:background="@drawable/side_nav_bar"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_menu_cash" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set price"
+            android:textSize="30sp"
+            android:textColor="#00ffaa"
+            android:layout_gravity="center_vertical"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="#222"
+        android:padding="20dp">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_abc"/>
+            <EditText
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:textColor="#00ffaa"
+                android:id="@+id/edtName"
+                android:textSize="24dp"
+                android:inputType="text"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_cash"/>
+            <EditText
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:textColor="#00ffaa"
+                android:textSize="24dp"
+                android:id="@+id/edtPrice"
+                android:inputType="number"/>
+        </LinearLayout>
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/side_nav_bar"
+        >
+        <ImageButton
+            android:layout_weight="1"
+            android:background="#222"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:id="@+id/setprice_positive_button"
+            android:src="@drawable/checked"
+            android:layout_margin="2dp"/>
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:background="#222"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:layout_margin="2dp"
+            android:id="@+id/setprice_negative_button"
+            android:src="@drawable/cancel"/>
+    </LinearLayout>
+
+
+</LinearLayout>

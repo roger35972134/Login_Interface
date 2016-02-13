@@ -3,6 +3,7 @@ package com.example.roger.parsetest;
 import android.app.Notification;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -30,6 +31,8 @@ public class LoginActivity extends AppCompatActivity {
     String Id, password;
     @Bind(R.id.edtId)
     EditText edt_Id;
+    @Bind(R.id.login_title)
+    TextView login_title;
     @Bind(R.id.edtpassword)
     EditText edt_password;
     TextView toastText;
@@ -48,11 +51,12 @@ public class LoginActivity extends AppCompatActivity {
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> objects, com.parse.ParseException e) {
-                if (e == null&& objects.size()!=0) {
+                if (e == null && objects.size() != 0) {
                     setToast("Login success");
-                    Intent intent=new Intent(LoginActivity.this,MainActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    intent.putExtra("PLAYER_ID",Id);
                     startActivity(intent);
-                } else if(e==null) {
+                } else if (e == null) {
                     //Toast.makeText(MainActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
                     setToast("Account error");
                 } else {
@@ -69,6 +73,8 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         initParse();
         ButterKnife.bind(this);
+        Typeface font=Typeface.createFromAsset(getAssets(),"Bigfish.ttf");
+        login_title.setTypeface(font);
     }
 
     public void initParse() {
@@ -79,12 +85,6 @@ public class LoginActivity extends AppCompatActivity {
             //do nothing
         }
 
-    }
-    public void setSnackBar(String message){
-        new SnackBar.Builder(this)
-                    .withMessage(message)
-                    .withActionMessage("UNDO")
-                    .show();
     }
     public void setToast(String message)
     {
