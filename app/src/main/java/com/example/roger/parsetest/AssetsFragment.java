@@ -8,11 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class AssetsFragment extends Fragment {
     TextView assetsCash;
     @Bind(R.id.Assets)
     TextView assets;
-
+    Firebase ref;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.assets_fragmet, container, false);
@@ -46,7 +46,21 @@ public class AssetsFragment extends Fragment {
     public void getData() {
         Bundle bundle = getArguments();
         String PlayerId = bundle.getString("PLAYER_ID");
-        ParseQuery query = ParseQuery.getQuery("UserData");
+        ref = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId);
+        ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                assetsBank.setText(dataSnapshot.child("bank").getValue(String.class));
+                assetsPoint.setText(dataSnapshot.child("point").getValue(String.class));
+                assetsCash.setText(dataSnapshot.child("cash").getValue(String.class));
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        /*ParseQuery query = ParseQuery.getQuery("UserData");
         query.whereEqualTo("Id", PlayerId);
         try {
             List<ParseObject> objects=query.find();
@@ -58,21 +72,6 @@ public class AssetsFragment extends Fragment {
             }
         } catch (ParseException e) {
             e.printStackTrace();
-        }
-        /*query.findInBackground(new FindCallback<ParseObject>() {
-            @Override
-            public void done(List<ParseObject> objects, ParseException e) {
-                if (e == null && objects.size() > 0) {
-                    ParseObject hit = objects.get(0);
-                    if (hit.getNumber("bank") != null) {
-                        assetsBank.setText(hit.getNumber("bank").toString());
-                        assetsPoint.setText(hit.getNumber("point").toString());
-                        assetsCash.setText(hit.getNumber("cash").toString());
-                    }
-                } else {
-
-                }
-            }
-        });*/
+        }*/
     }
 }

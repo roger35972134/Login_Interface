@@ -26,6 +26,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,15 +39,11 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
-import com.parse.SaveCallback;
 
 import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
@@ -59,7 +59,9 @@ public class MapsFragment extends Fragment implements LocationListener {
     String setBuildName, PlayerId;
     @Bind(R.id.mapview)
     MapView mapView;
-
+    ArrayList<String> namelist=new ArrayList<>();
+    ValueEventListener checkMatchValue;
+    Firebase ref;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.maps_fragment, container, false);
@@ -67,7 +69,11 @@ public class MapsFragment extends Fragment implements LocationListener {
         mapView.onCreate(savedInstanceState);
         Bundle bundle = getArguments();
         PlayerId = bundle.getString("PLAYER_ID");
+
+        ref = new Firebase("http://brilliant-heat-8278.firebaseio.com/Maps/");
+
         InitMarker();
+
 
         // Gets to GoogleMap from the MapView and does initialization stuff
         map = mapView.getMap();
@@ -135,54 +141,62 @@ public class MapsFragment extends Fragment implements LocationListener {
     }
 
     public void InitMarker() {
-        ParseQuery query = ParseQuery.getQuery("Map");
-        /*try {
-            List<ParseObject> objects = query.find();
-            if (!objects.isEmpty()) {
-                for (int i = 0; i < objects.size(); i++) {
-                    ParseObject parseObject = objects.get(i);
-                    LatLng latLng = new LatLng(parseObject.getNumber("latitude").doubleValue()
-                            , parseObject.getNumber("longitude").doubleValue());
-                    addingMarker(parseObject.getString("name"), latLng);
-                }
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }*/
-        query.findInBackground(new FindCallback<ParseObject>() {
+        ref.addValueEventListener(new ValueEventListener() {
             @Override
-            public void done(List<ParseObject> objects, ParseException e) {
-                if (e == null && !objects.isEmpty()) {
-                    for (int i = 0; i < objects.size(); i++) {
-                        ParseObject parseObject = objects.get(i);
-                        LatLng latLng = new LatLng(parseObject.getNumber("latitude").doubleValue()
-                                , parseObject.getNumber("longitude").doubleValue());
-                        addingMarker(parseObject.getString("name"), latLng);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists())
+                {
+                    for(DataSnapshot i:dataSnapshot.getChildren()){
+                        double latitude,longitude;
+                        String name;
+                        latitude=i.child("latitude").getValue(double.class);
+                        longitude=i.child("longitude").getValue(double.class);
+                        name=i.child("name").getValue(String.class);
+                        namelist.add(name);
+                        LatLng latLng = new LatLng(latitude,longitude);
+                        addingMarker(name, latLng);
                     }
                 }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
             }
         });
     }
 
-    public void checkMatchPoint(LatLng latLng) {
-        ParseQuery query = ParseQuery.getQuery("Map");
-        query.whereGreaterThanOrEqualTo("latitude", latLng.latitude - 0.00025)
-                .whereLessThanOrEqualTo("latitude", latLng.latitude + 0.00025)
-                .whereGreaterThanOrEqualTo("longitude", latLng.longitude - 0.00025)
-                .whereLessThanOrEqualTo("longitude", latLng.longitude + 0.00025);
-        try {
-            List<ParseObject> objects = query.find();
-            if (!objects.isEmpty()) {
-                ParseObject object = objects.get(0);
-                String pathName = object.getString("name");
-                String matchPrice=object.getNumber("price").toString();
-                if (object.getString("owner") == null) {
-                        onCreateBuyBuildingDialog(pathName,matchPrice);
+    public void checkMatchPoint(final LatLng latLng) {
+        ref.addValueEventListener(checkMatchValue=new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists())
+                {
+                    for(DataSnapshot i:dataSnapshot.getChildren())
+                    {
+                        double latitude,longitude;
+                        String name,price;
+                        latitude=i.child("latitude").getValue(double.class);
+                        longitude=i.child("longitude").getValue(double.class);
+                        name=i.child("name").getValue(String.class);
+                        price=i.child("price").getValue(String.class);
+                        if(latitude>latLng.latitude-0.00025 && latitude<latLng.latitude+0.00025
+                                && longitude>latLng.longitude-0.00025 && longitude<latLng.longitude+0.00025){
+                            String pathName = name;
+                            String matchPrice=price;
+                            if (i.child("owner").getValue(String.class).equals("none")) {
+                                onCreateBuyBuildingDialog(pathName,matchPrice);
+                            }
+                        }
+                    }
                 }
             }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
     }
 
     public void addingMarker(String title, LatLng latLng) {
@@ -235,12 +249,13 @@ public class MapsFragment extends Fragment implements LocationListener {
     int buildPrice = -1;
     boolean nameDuplicate;
 
-    public void checkDuplicate(final String name) throws ParseException {
+    public boolean checkDuplicate(final String name){
         nameDuplicate = false;
-        ParseQuery query = ParseQuery.getQuery("Map");
-        query.whereEqualTo("name", name);
-        if (!query.find().isEmpty())
-            nameDuplicate = true;
+        for(int i=0;i<namelist.size();i++){
+            if(namelist.get(i).equals(name))
+                nameDuplicate=true;
+        }
+        return nameDuplicate;
     }
 
     public void onCreateSetPriceDialog(final LatLng latLng) {
@@ -261,7 +276,7 @@ public class MapsFragment extends Fragment implements LocationListener {
             public void onClick(View v) {
                 if (edtPrice.getText().toString().equals("") || edtName.getText().toString().equals("")) {
                     Toast.makeText(MapsFragment.this.getContext(), "Item can't be empty", Toast.LENGTH_LONG);
-                } else if (nameDuplicate) {
+                } else if (checkDuplicate(edtName.getText().toString())) {
                     edtName.setText("");
                     Toast.makeText(MapsFragment.this.getContext(), "Name had been used", Toast.LENGTH_LONG).show();
                 } else {
@@ -269,13 +284,8 @@ public class MapsFragment extends Fragment implements LocationListener {
                     setBuildName = edtName.getText().toString();
                     addingMarker(setBuildName, latLng);
                     alertDialog.dismiss();
+                    ref.removeEventListener(checkMatchValue);
                     updateData(latLng);
-                }
-
-                try {
-                    checkDuplicate(edtName.getText().toString());
-                } catch (ParseException e) {
-                    e.printStackTrace();
                 }
             }
         });
@@ -289,7 +299,7 @@ public class MapsFragment extends Fragment implements LocationListener {
         alertDialog.show();
     }
 
-    int Bank, Price;
+    int Bank, Price,Cash;
 
     public void onCreateBuyBuildingDialog(final String pathName,String matchPrice){
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -298,6 +308,7 @@ public class MapsFragment extends Fragment implements LocationListener {
 
         getBankMoney();
         getPrice(pathName);
+        getCashMoney();
         ImageButton positive = (ImageButton) dialogView.findViewById(R.id.positive_button);
         ImageButton negative = (ImageButton) dialogView.findViewById(R.id.negative_button);
         TextView p = (TextView) dialogView.findViewById(R.id.buildingPrice);
@@ -308,38 +319,28 @@ public class MapsFragment extends Fragment implements LocationListener {
         builder.setView(dialogView);
         final AlertDialog dialog = builder.create();
 
-
         positive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Firebase cash=new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/"+PlayerId+"/cash");
+                Firebase bank=new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/"+PlayerId+"/bank");
+
                 dialog.dismiss();
-
-                ParseQuery query = ParseQuery.getQuery("UserData");
-                query.whereEqualTo("Id", PlayerId);
-                try {
-                    List<ParseObject> objects = query.find();
-                    if (!objects.isEmpty()) {
-                        ParseObject object = objects.get(0);
-                        object.put("bank", Bank - Price);
-                        object.save();
-                    }
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                if(Cash-Price>=0)
+                {
+                    cash.setValue(Cash-Price);
+                    ref.child(pathName + "/owner").setValue(PlayerId);
                 }
-                query = ParseQuery.getQuery("Map");
-                query.whereEqualTo("name", pathName);
-                try {
-                    List<ParseObject> objects = query.find();
-                    ParseObject object = objects.get(0);
-                    object.put("owner", PlayerId);
-                    object.save();
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                else if(Bank-Price>=0)
+                {
+                    bank.setValue(Bank-Price);
+                    ref.child(pathName + "/owner").setValue(PlayerId);
                 }
-
+                else
+                {
+                    System.out.println("we need more gold");
+                }
             }
-
-
         });
         negative.setOnClickListener(new View.OnClickListener() {
 
@@ -354,39 +355,58 @@ public class MapsFragment extends Fragment implements LocationListener {
     }
 
     public int getPrice(String pathName) {
-        ParseQuery query = ParseQuery.getQuery("Map");
-        query.whereEqualTo("name", pathName);
-        try {
-            List<ParseObject> objects = query.find();
-            ParseObject object = objects.get(0);
-            Price = object.getInt("price");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        ref.child(pathName+"/price").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Price=dataSnapshot.getValue(int.class);
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        System.out.println(Price);
         return Price;
     }
-
-    public int getBankMoney() {
-        ParseQuery query = ParseQuery.getQuery("UserData");
-        query.whereEqualTo("Id", PlayerId);
-        try {
-            List<ParseObject> objects = query.find();
-            if (!objects.isEmpty()) {
-                ParseObject object = objects.get(0);
-                Bank = object.getInt("bank");
+    public int getCashMoney(){
+        Firebase cash = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/"+PlayerId+"/cash");
+        cash.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Cash = dataSnapshot.getValue(int.class);
             }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        return Cash;
+    }
+    public int getBankMoney() {
+        Firebase bank = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/"+PlayerId+"/bank");
+        bank.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Bank=dataSnapshot.getValue(int.class);
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
         return Bank;
     }
 
     public void updateData(LatLng latLng) {
-        ParseObject mapData = new ParseObject("Map");
-        mapData.put("latitude", latLng.latitude);
-        mapData.put("longitude", latLng.longitude);
-        mapData.put("name", setBuildName);
-        mapData.put("price", buildPrice);
-        mapData.saveInBackground();
+        Firebase build=ref.child(setBuildName);
+        build.child("latitude").setValue(latLng.latitude);
+        build.child("longitude").setValue(latLng.longitude);
+        build.child("name").setValue(setBuildName);
+        namelist.add(setBuildName);
+        build.child("price").setValue(buildPrice);
+        build.child("owner").setValue("none");
     }
 }

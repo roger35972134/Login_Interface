@@ -1,26 +1,23 @@
 package com.example.roger.parsetest;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
+import com.firebase.client.ChildEventListener;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
+import com.firebase.client.ValueEventListener;
 
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -28,7 +25,7 @@ import butterknife.OnClick;
 
 
 public class SignUpActivity extends Activity {
-    boolean flag = true;
+
     @Bind(R.id.signID)
     EditText signId;
     @Bind(R.id.signPW)
@@ -39,34 +36,20 @@ public class SignUpActivity extends Activity {
     TextView signUp_title;
     TextView toastText;
     //custom toast
-
+    Firebase ref;
+    String id, password, email;
+    ValueEventListener checkup;
 
     @OnClick(R.id.imgCheck)
     void onClick() {
-        final String id = signId.getText().toString();
-        final String password = signPw.getText().toString();
-        final String email = signEmail.getText().toString();
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (flag) {
-                    updateData(id, password, email);
-                    Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                }
-            }
-        });
+        id = signId.getText().toString();
+        password = signPw.getText().toString();
+        email = signEmail.getText().toString();
         Check(id, password, email);
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        thread.run();
     }
 
     @OnClick(R.id.returnpage)
-    void onReturnClick(View v) {
+    void onReturnClick() {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
     }
@@ -75,43 +58,65 @@ public class SignUpActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
-        Typeface font=Typeface.createFromAsset(getAssets(),"Bigfish.ttf");
+        Typeface font = Typeface.createFromAsset(getAssets(), "Bigfish.ttf");
         signUp_title.setTypeface(font);
+
+
+        ref = new Firebase("http://brilliant-heat-8278.firebaseio.com/");
     }
 
-    public void Check(String Id, String Password, String Email) {
-        flag = true;
-        if (Id.isEmpty() && Password.isEmpty() && Email.isEmpty()) {
+    int count = 0;
+
+    public void Check(final String Id, String Password, String Email) {
+        final boolean[] flag = {true, false};
+
+        if (Id.isEmpty() || Password.isEmpty() || Email.isEmpty()) {
             setToast("You should fill all the slots");
-            flag = false;
         }
-        ParseQuery query = ParseQuery.getQuery("UserData");
-        query.whereEqualTo("Id", Id);
-        query.findInBackground(new FindCallback<ParseObject>() {
-            public void done(List<ParseObject> objects, ParseException e) {
-                if (objects.size() != 0) {
-                    setToast("ID have been used by another user");
-                    flag = false;
-                } else if (e != null) {
-                    setToast("Server error");
+
+        ref.child("userData").addValueEventListener(checkup = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                System.out.println(count++);
+                if (!flag[1]) {
+
+                    for (DataSnapshot i : dataSnapshot.getChildren()) {
+                        System.out.println(i.child("Id"));
+                        if (i.child("Id").getValue().toString().equals(Id)) {
+                            setToast("ID have been used by another user");
+                            flag[0] = false;
+                        }
+                    }
+                    if (flag[0]) {
+                        updateData(id, password, email);
+                        ref.child("userData").removeEventListener(checkup);
+                        flag[1] = true;
+                        Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+                        startActivity(intent);
+
+                    }
                 }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
             }
         });
     }
 
 
-    @SuppressLint("SetTextI18n")
     public void updateData(String ID, String PW, String Email) {
-        ParseObject userdata = new ParseObject("UserData");
-        userdata.put("Id", ID);
-        userdata.put("password", PW);
-        userdata.put("email", Email);
-        userdata.put("bank",2000);
-        userdata.put("cash",1000);
-        userdata.put("point",200);
-        userdata.saveInBackground();
-        setToast("Sign up success");
+        Firebase depth = ref.child("userData");
 
+        depth.child(ID + "/Id").setValue(ID);
+        depth.child(ID + "/password").setValue(PW);
+        depth.child(ID + "/email").setValue(Email);
+        depth.child(ID + "/bank").setValue(2000);
+        depth.child(ID + "/cash").setValue(1000);
+        depth.child(ID + "/point").setValue(200);
+
+        setToast("Sign up success");
     }
 
     public void setToast(String message) {
