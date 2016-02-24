@@ -43,7 +43,7 @@ public class LoginActivity extends AppCompatActivity {
         Id = edt_Id.getText().toString();
         password = edt_password.getText().toString();
         Firebase depthref = ref.child("userData/" + Id);
-        depthref.addValueEventListener(new ValueEventListener() {
+        depthref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && dataSnapshot.child("Id").getValue().equals(Id)

@@ -19,7 +19,7 @@ public class DiceFragment extends Fragment {
 
     int dice_pic[] = {R.drawable.dice_one, R.drawable.dice_two, R.drawable.dice_three,
             R.drawable.dice_four, R.drawable.dice_five, R.drawable.dice_six};
-    int current = 1, mspeedType, count=0;
+    int current = 1,count=0,direction=1;
 
     @Bind(R.id.rollIt)
     TextView rollIt;
@@ -30,7 +30,13 @@ public class DiceFragment extends Fragment {
     void onClick() {
         count=0;
         handlechange();
+        if(direction==1)
+        {
+            ////////
+        }
+        else if(direction==-1){
 
+        }
     }
 
     public int random() {

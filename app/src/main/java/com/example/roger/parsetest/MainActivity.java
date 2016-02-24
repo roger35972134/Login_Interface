@@ -233,6 +233,10 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.nav_setting:
                 toolbarSet("Setting");
+                SetMapFragment setMapFragment=new SetMapFragment();
+                setMapFragment.setArguments(bundle);
+                fragmentTransaction.replace(R.id.frame,setMapFragment);
+                fragmentTransaction.commit();
                 break;
         }
         drawer.closeDrawer(GravityCompat.START);

@@ -107,14 +107,15 @@ public class SignUpActivity extends Activity {
 
 
     public void updateData(String ID, String PW, String Email) {
-        Firebase depth = ref.child("userData");
+        Firebase depth = ref.child("userData/"+ID);
 
-        depth.child(ID + "/Id").setValue(ID);
-        depth.child(ID + "/password").setValue(PW);
-        depth.child(ID + "/email").setValue(Email);
-        depth.child(ID + "/bank").setValue(2000);
-        depth.child(ID + "/cash").setValue(1000);
-        depth.child(ID + "/point").setValue(200);
+        depth.child("Id").setValue(ID);
+        depth.child("password").setValue(PW);
+        depth.child("email").setValue(Email);
+        depth.child("bank").setValue(2000);
+        depth.child("cash").setValue(1000);
+        depth.child("point").setValue(200);
+
 
         setToast("Sign up success");
     }

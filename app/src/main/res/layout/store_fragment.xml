@@ -3,9 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/side_nav_bar"
+    android:background="#feff72"
     android:gravity="center_horizontal"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    >
 
     <TextView
         android:id="@+id/store"
@@ -14,7 +15,7 @@
         android:layout_marginBottom="0dp"
         android:layout_marginTop="20dp"
         android:text="Store"
-        android:textColor="#00ffaa"
+        android:textColor="#bd00ff"
         android:textSize="40dp" />
 
     <LinearLayout
@@ -27,6 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="150"
+            android:textColor="#bd00ff"
             android:textSize="20dp" />
 
         <ImageView
@@ -70,6 +72,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="150"
+                    android:textColor="#bd00ff"
                     android:textSize="20dp" />
 
                 <ImageView
@@ -100,6 +103,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="50"
+                    android:textColor="#bd00ff"
                     android:textSize="20dp" />
 
                 <ImageView
@@ -130,6 +134,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="30"
+                    android:textColor="#bd00ff"
                     android:textSize="20dp" />
 
                 <ImageView
@@ -168,6 +173,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="30"
+                    android:textColor="#bd00ff"
                     android:textSize="20dp" />
 
                 <ImageView
@@ -198,6 +204,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="300"
+                    android:textColor="#bd00ff"
                     android:textSize="20dp" />
 
                 <ImageView
@@ -228,6 +235,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="50"
+                    android:textColor="#bd00ff"
                     android:textSize="20dp" />
 
                 <ImageView

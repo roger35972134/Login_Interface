@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,22 +47,23 @@ import org.w3c.dom.Text;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MapsFragment extends Fragment implements LocationListener {
+public class SetMapFragment extends Fragment implements LocationListener {
     String bestProvider;
     GoogleMap map;
     float zoom = 18;
+    int count = 0, PlayerPosition;
     private LocationManager locationManager;
-    String PlayerId, MapId;
+    EditText edtPrice, edtName, edtMapName;
+    String setBuildName, PlayerId;
     @Bind(R.id.mapview)
     MapView mapView;
     ArrayList<String> nameList = new ArrayList<>();
-    Firebase ref, base;
+    Firebase ref, mapRef;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -70,13 +72,22 @@ public class MapsFragment extends Fragment implements LocationListener {
         mapView.onCreate(savedInstanceState);
         Bundle bundle = getArguments();
         PlayerId = bundle.getString("PLAYER_ID");
-        base = new Firebase("http://brilliant-heat-8278.firebaseio.com/");
-        InitMap();
+
+
+        onCreateMapName();
+        ref = new Firebase("http://brilliant-heat-8278.firebaseio.com/Maps/");
 
 
         // Gets to GoogleMap from the MapView and does initialization stuff
         map = mapView.getMap();
         map.getUiSettings().setMyLocationButtonEnabled(true);
+        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+
+                onCreateSetPriceDialog(latLng);
+            }
+        });
 
         locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
@@ -99,7 +110,8 @@ public class MapsFragment extends Fragment implements LocationListener {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        locationManager.requestLocationUpdates(bestProvider, 2000, 20, this);
+        locationManager.requestLocationUpdates(bestProvider, 5000, 20, this);
+
         super.onResume();
     }
 
@@ -115,7 +127,7 @@ public class MapsFragment extends Fragment implements LocationListener {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        locationManager.removeUpdates(this);
+
         super.onPause();
         mapView.onPause();
     }
@@ -132,25 +144,8 @@ public class MapsFragment extends Fragment implements LocationListener {
         mapView.onLowMemory();
     }
 
-    public void InitMap() {
-        base.child("userData/" + PlayerId + "/CurrentMap").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                MapId = dataSnapshot.getValue(String.class);
-                initPlayerPosition();
-                InitMarker();
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-    }
-
     public void InitMarker() {
-        ref = base.child("Maps/location/" + MapId);
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        mapRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -160,11 +155,12 @@ public class MapsFragment extends Fragment implements LocationListener {
                         latitude = i.child("latitude").getValue(double.class);
                         longitude = i.child("longitude").getValue(double.class);
                         name = i.child("name").getValue(String.class);
-                        Integer num = i.child("number").getValue(int.class);
+                        int num = i.child("number").getValue(int.class);
                         nameList.add(name);
                         LatLng latLng = new LatLng(latitude, longitude);
                         addingMarker(name, latLng, num);
                     }
+                    count = nameList.size();
                 }
             }
 
@@ -173,38 +169,9 @@ public class MapsFragment extends Fragment implements LocationListener {
 
             }
         });
+
     }
 
-    public void checkMatchPoint(final LatLng latLng) {
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot i : dataSnapshot.getChildren()) {
-                        double latitude, longitude;
-                        String name, price;
-                        latitude = i.child("latitude").getValue(double.class);
-                        longitude = i.child("longitude").getValue(double.class);
-                        name = i.child("name").getValue(String.class);
-                        price = i.child("price").getValue(String.class);
-                        if (latitude > latLng.latitude - 0.00025 && latitude < latLng.latitude + 0.00025
-                                && longitude > latLng.longitude - 0.00025 && longitude < latLng.longitude + 0.00025) {
-                            if (i.child("owner").getValue(String.class).equals("none")) {
-                                onCreateBuyBuildingDialog(name, price);
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-    }
-
-    int PlayerPosition;
     public void initPlayerPosition() {
         ref.child("player/" + PlayerId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -221,6 +188,8 @@ public class MapsFragment extends Fragment implements LocationListener {
     }
 
     public void addingMarker(String title, LatLng latLng, int num) {
+
+
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng)
                 .title(String.valueOf(num))
@@ -228,10 +197,10 @@ public class MapsFragment extends Fragment implements LocationListener {
                 .draggable(false)
                 .visible(true)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.maps_house));
+
         map.addMarker(markerOptions);
-        if (PlayerPosition == num)
-        {
-            LatLng playerLatLng=new LatLng(latLng.latitude+0.0002,latLng.longitude);
+        if (num == PlayerPosition) {
+            LatLng playerLatLng = new LatLng(latLng.latitude + 0.0002, latLng.longitude);
             MarkerOptions markerOptionPlayer = new MarkerOptions();
             markerOptionPlayer.position(playerLatLng)
                     .draggable(false)
@@ -241,13 +210,12 @@ public class MapsFragment extends Fragment implements LocationListener {
         }
     }
 
-    int buf = 0;
-
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void onLocationChanged(Location location) {
-        buf++;
         LatLng Point = new LatLng(location.getLatitude(), location.getLongitude());
+        /*SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        String date = sDateFormat.format(new java.util.Date());*/
 
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(Point, zoom));
         if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -262,8 +230,7 @@ public class MapsFragment extends Fragment implements LocationListener {
             return;
         }
         map.setMyLocationEnabled(true);
-        if (buf > 1)
-            checkMatchPoint(Point);
+        locationManager.removeUpdates(this);
     }
 
     @Override
@@ -281,103 +248,115 @@ public class MapsFragment extends Fragment implements LocationListener {
 
     }
 
+    int buildPrice = -1;
+    boolean nameDuplicate;
 
-    int Bank, Price, Cash;
+    public boolean checkDuplicate(String name) {
+        nameDuplicate = false;
+        System.out.println(nameList.size() + " " + name);
+        for (int i = 0; i < nameList.size(); i++) {
+            System.out.println(nameList.get(i));
+            if (nameList.get(i).equals(name))
+                nameDuplicate = true;
+        }
+        return nameDuplicate;
+    }
 
-    public void onCreateBuyBuildingDialog(final String pathName, String matchPrice) {
+    public void onCreateSetPriceDialog(final LatLng latLng) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        final View dialogView = inflater.inflate(R.layout.layout_dialog_buybuilding, null);
+        View dialog = inflater.inflate(R.layout.layout_dialog_setprice, null);
+        ImageButton checkbtn = (ImageButton) dialog.findViewById(R.id.setprice_positive_button);
+        ImageButton cancelbtn = (ImageButton) dialog.findViewById(R.id.setprice_negative_button);
+        edtPrice = (EditText) dialog.findViewById(R.id.edtPrice);
+        edtName = (EditText) dialog.findViewById(R.id.edtName);
 
-        getBankMoney();
-        getPrice(pathName);
-        getCashMoney();
-        ImageButton positive = (ImageButton) dialogView.findViewById(R.id.positive_button);
-        ImageButton negative = (ImageButton) dialogView.findViewById(R.id.negative_button);
-        TextView p = (TextView) dialogView.findViewById(R.id.buildingPrice);
-        TextView n = (TextView) dialogView.findViewById(R.id.buildingName);
-        n.setText(pathName);
-        p.setText(matchPrice);
 
-        builder.setView(dialogView);
-        final AlertDialog dialog = builder.create();
-
-        positive.setOnClickListener(new View.OnClickListener() {
+        builder.setView(dialog);
+        final AlertDialog alertDialog = builder.create();
+        alertDialog.setCanceledOnTouchOutside(false);
+        checkbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Firebase cash = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId + "/cash");
-                Firebase bank = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId + "/bank");
-
-                dialog.dismiss();
-                if (Cash - Price >= 0) {
-                    cash.setValue(Cash - Price);
-                    ref.child(pathName + "/owner").setValue(PlayerId);
-                } else if (Bank - Price >= 0) {
-                    bank.setValue(Bank - Price);
-                    ref.child(pathName + "/owner").setValue(PlayerId);
+                if (edtPrice.getText().toString().equals("") || edtName.getText().toString().equals("")) {
+                    Toast.makeText(SetMapFragment.this.getContext(), "Item can't be empty", Toast.LENGTH_LONG);
+                } else if (checkDuplicate(edtName.getText().toString())) {
+                    edtName.setText("");
+                    Toast.makeText(SetMapFragment.this.getContext(), "Name had been used", Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(MapsFragment.this.getContext(), "You need more gold", Toast.LENGTH_LONG).show();
+                    buildPrice = Integer.parseInt(edtPrice.getText().toString());
+                    setBuildName = edtName.getText().toString();
+                    count++;
+                    addingMarker(setBuildName, latLng, count);
+                    nameList.add(setBuildName);
+                    alertDialog.dismiss();
+                    updateData(latLng, count);
                 }
             }
         });
-        negative.setOnClickListener(new View.OnClickListener() {
-
+        cancelbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialog.dismiss();
+                buildPrice = -1;
+                alertDialog.dismiss();
             }
         });
-
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.show();
+        alertDialog.show();
     }
 
-    public int getPrice(String pathName) {
-        ref.child(pathName + "/price").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Price = dataSnapshot.getValue(int.class);
-            }
+    public void onCreateMapName() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View dialog = inflater.inflate(R.layout.layout_dialog_map_name, null);
+        ImageButton checkbtn = (ImageButton) dialog.findViewById(R.id.mapName_positive_button);
+        ImageButton cancelbtn = (ImageButton) dialog.findViewById(R.id.mapName_negative_button);
+        edtMapName = (EditText) dialog.findViewById(R.id.edtMapName);
 
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
 
+        builder.setView(dialog);
+        final AlertDialog alertDialog = builder.create();
+        alertDialog.setCanceledOnTouchOutside(false);
+        checkbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+                mapRef = ref.child("location/" + edtMapName.getText().toString());
+                Firebase currentMap = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId);
+                currentMap.child("CurrentMap").setValue(edtMapName.getText().toString());
+
+                ref.child("player/" + PlayerId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (!dataSnapshot.exists()) {
+                            ref.child("player/" + PlayerId).setValue((int) (Math.random() * count) + 1);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
+                initPlayerPosition();
+                InitMarker();
             }
         });
-        return Price;
-    }
-
-    public int getCashMoney() {
-        Firebase cash = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId + "/cash");
-        cash.addValueEventListener(new ValueEventListener() {
+        cancelbtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Cash = dataSnapshot.getValue(int.class);
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
+            public void onClick(View v) {
+                alertDialog.dismiss();
             }
         });
-        return Cash;
+        alertDialog.show();
     }
 
-    public int getBankMoney() {
-        Firebase bank = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId + "/bank");
-        bank.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Bank = dataSnapshot.getValue(int.class);
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-        return Bank;
+    public void updateData(LatLng latLng, int num) {
+        Firebase build = mapRef.child(setBuildName);
+        build.child("latitude").setValue(latLng.latitude);
+        build.child("longitude").setValue(latLng.longitude);
+        build.child("name").setValue(setBuildName);
+        build.child("number").setValue(num);
+        build.child("price").setValue(buildPrice);
+        build.child("owner").setValue("none");
     }
-
-
 }

@@ -58,6 +58,7 @@
             android:layout_height="60dp"
             android:textSize="24dp"
             android:id="@+id/edtpassword"
+            android:inputType="textPassword"
             android:textColor="#00ffaa"/>
     </LinearLayout>
     <LinearLayout
