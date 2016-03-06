@@ -1,5 +1,6 @@
 package com.example.roger.parsetest;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -19,6 +20,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -60,8 +63,24 @@ public class MainActivity extends AppCompatActivity
         ref = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId);
         toolbarSet("Rich Man");
         setPhoto();
-
+        initMap();
         navigationView.setNavigationItemSelectedListener(this);
+    }
+    public void initMap(){
+        ref.child("CurrentMap").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(!dataSnapshot.exists())
+                {
+                    onCreateMapName();
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
     }
 
     public void setPhoto() {
@@ -106,10 +125,6 @@ public class MainActivity extends AppCompatActivity
             final String picturePath = cursor.getString(columnIndex);
             cursor.close();
 
-            //ImageView imageView = (ImageView) findViewById(R.id.userPhoto);
-            //imageView.setImageURI(selectedImage);
-            //TextView userName = (TextView) findViewById(R.id.userName);
-            //userName.setText(PlayerId);
             Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
@@ -118,30 +133,39 @@ public class MainActivity extends AppCompatActivity
             String imageFile = Base64.encodeToString(bytesArray, Base64.DEFAULT);
 
             ref.child("photo").setValue(imageFile);
-            /*ParseFile parseFile= new ParseFile(file);
-
-
-            ParseQuery query=ParseQuery.getQuery("UserData");
-            query.whereEqualTo("Id", PlayerId);
-            try {
-                List<ParseObject> objects=query.find();
-                ParseObject object=objects.get(0);
-                object.put("photo", parseFile);
-                object.saveInBackground(new SaveCallback() {
-                    @Override
-                    public void done(ParseException e) {
-                        ImageView imageView = (ImageView) findViewById(R.id.userPhoto);
-                        imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
-                        TextView textView = (TextView) findViewById(R.id.userName);
-                        textView.setText(PlayerId);
-                    }
-                });
-
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }*/
         }
 
+    }
+    EditText edtMapName;
+    String MapId;
+    public void onCreateMapName() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialog = inflater.inflate(R.layout.layout_dialog_map_name, null);
+        ImageButton checkbtn = (ImageButton) dialog.findViewById(R.id.mapName_positive_button);
+        ImageButton cancelbtn = (ImageButton) dialog.findViewById(R.id.mapName_negative_button);
+        edtMapName = (EditText) dialog.findViewById(R.id.edtMapName);
+
+
+        builder.setView(dialog);
+        final AlertDialog alertDialog = builder.create();
+        alertDialog.setCanceledOnTouchOutside(false);
+        checkbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+                MapId = edtMapName.getText().toString();
+                Firebase currentMap = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId);
+                currentMap.child("CurrentMap").setValue(MapId);
+            }
+        });
+        cancelbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }
+        });
+        alertDialog.show();
     }
 
     public void setToast(String message) {
@@ -201,6 +225,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.dice_rolling:
                 toolbarSet("Dice");
                 DiceFragment diceFragment = new DiceFragment();
+                diceFragment.setArguments(bundle);
                 fragmentTransaction.replace(R.id.frame, diceFragment);
                 fragmentTransaction.commit();
                 break;
@@ -221,7 +246,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_store:
                 toolbarSet("Store");
                 StoreFragment storeFragment=new StoreFragment();
-                //storeFragment.setArguments(bundle);
+                storeFragment.setArguments(bundle);
                 fragmentTransaction.replace(R.id.frame,storeFragment);
                 fragmentTransaction.commit();
                 break;

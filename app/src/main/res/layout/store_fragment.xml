@@ -54,13 +54,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:sl_shadowColor="#AA000000"
-                app:sl_shadowRadius="5dp">
+                app:sl_shadowRadius="2dp">
 
                 <ImageButton
                     android:id="@+id/store_rocket"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    android:background="@drawable/image_button"
+                    android:background="@drawable/background_store_item"
                     android:src="@drawable/rocket81" />
             </com.dd.ShadowLayout>
 
@@ -85,13 +85,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:sl_shadowColor="#AA000000"
-                app:sl_shadowRadius="5dp">
+                app:sl_shadowRadius="2dp">
 
                 <ImageButton
                     android:id="@+id/store_bombs"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    android:background="@drawable/image_button"
+                    android:background="@drawable/background_store_item"
                     android:src="@drawable/bombs" />
             </com.dd.ShadowLayout>
 
@@ -116,13 +116,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:sl_shadowColor="#AA000000"
-                app:sl_shadowRadius="5dp">
+                app:sl_shadowRadius="2dp">
 
                 <ImageButton
                     android:id="@+id/store_dice"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    android:background="@drawable/image_button"
+                    android:background="@drawable/background_store_item"
                     android:src="@drawable/dice" />
             </com.dd.ShadowLayout>
 
@@ -155,13 +155,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:sl_shadowColor="#AA000000"
-                app:sl_shadowRadius="5dp">
+                app:sl_shadowRadius="2dp">
 
                 <ImageButton
                     android:id="@+id/store_stop"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    android:background="@drawable/image_button"
+                    android:background="@drawable/background_store_item"
                     android:src="@drawable/stop" />
             </com.dd.ShadowLayout>
 
@@ -186,13 +186,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:sl_shadowColor="#AA000000"
-                app:sl_shadowRadius="5dp">
+                app:sl_shadowRadius="2dp">
 
                 <ImageButton
                     android:id="@+id/store_change_position"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    android:background="@drawable/image_button"
+                    android:background="@drawable/background_store_item"
                     android:src="@drawable/change" />
             </com.dd.ShadowLayout>
 
@@ -217,13 +217,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:sl_shadowColor="#AA000000"
-                app:sl_shadowRadius="5dp">
+                app:sl_shadowRadius="2dp">
 
                 <ImageButton
                     android:id="@+id/store_change_direction"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    android:background="@drawable/image_button"
+                    android:background="@drawable/background_store_item"
                     android:src="@drawable/change_direction" />
             </com.dd.ShadowLayout>
 

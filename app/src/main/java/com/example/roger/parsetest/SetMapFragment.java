@@ -47,6 +47,7 @@ import org.w3c.dom.Text;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -59,10 +60,20 @@ public class SetMapFragment extends Fragment implements LocationListener {
     int count = 0, PlayerPosition;
     private LocationManager locationManager;
     EditText edtPrice, edtName, edtMapName;
-    String setBuildName, PlayerId;
+    String setBuildName, PlayerId, MapId;
     @Bind(R.id.mapview)
     MapView mapView;
-    ArrayList<String> nameList = new ArrayList<>();
+    ArrayList<String> nameList = new ArrayList<>(),
+                      playerList = new ArrayList<>();
+    int[] house={R.drawable.maps_house_player1,R.drawable.maps_house_player2,R.drawable.maps_house_player3,
+            R.drawable.maps_house_player4,R.drawable.maps_house_player5,R.drawable.maps_house_player6
+            ,R.drawable.maps_house_player7,R.drawable.maps_house_player8,R.drawable.map_house};
+    int[] playerIcon = {R.drawable.map_player1, R.drawable.map_player2, R.drawable.map_player3,
+            R.drawable.map_player4, R.drawable.map_player5, R.drawable.map_player6
+            , R.drawable.map_player7, R.drawable.map_player8};
+    int trapIcon[] = {R.drawable.rocket81, R.drawable.bombs, R.drawable.dice,
+            R.drawable.stop, R.drawable.change, R.drawable.change_direction};
+
     Firebase ref, mapRef;
 
     @Override
@@ -76,6 +87,7 @@ public class SetMapFragment extends Fragment implements LocationListener {
 
         onCreateMapName();
         ref = new Firebase("http://brilliant-heat-8278.firebaseio.com/Maps/");
+
 
 
         // Gets to GoogleMap from the MapView and does initialization stuff
@@ -144,6 +156,25 @@ public class SetMapFragment extends Fragment implements LocationListener {
         mapView.onLowMemory();
     }
 
+    public void initPlayerList(){
+        ref.child(MapId+"/player").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot i : dataSnapshot.getChildren()) {
+                        String player=i.getKey();
+                        playerList.add(player);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+    }
+
     public void InitMarker() {
         mapRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -151,16 +182,40 @@ public class SetMapFragment extends Fragment implements LocationListener {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot i : dataSnapshot.getChildren()) {
                         double latitude, longitude;
-                        String name;
+                        int houseNo = 8,trap,playerNo=8;
+                        String name,owner;
+                        owner=i.child("owner").getValue(String.class);
                         latitude = i.child("latitude").getValue(double.class);
                         longitude = i.child("longitude").getValue(double.class);
                         name = i.child("name").getValue(String.class);
                         int num = i.child("number").getValue(int.class);
+                        trap=i.child("trapType").getValue(int.class);
                         nameList.add(name);
+                        for(int j=0;j<playerList.size();j++)
+                        {
+                            if(owner.equals(playerList.get(j)))
+                                houseNo=j;
+                            if(PlayerId.equals(playerList.get(j)))
+                                playerNo=j;
+                        }
                         LatLng latLng = new LatLng(latitude, longitude);
-                        addingMarker(name, latLng, num);
+                        addingMarker(name, latLng, num,houseNo,trap,playerNo);
                     }
                     count = nameList.size();
+                    ref.child(MapId + "/player/" + PlayerId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (!dataSnapshot.exists()) {
+                                ref.child(MapId + "/player/" + PlayerId + "/position").setValue((int) (Math.random() * count) + 1);
+                                ref.child(MapId + "/player/" + PlayerId + "/direction").setValue((int) (Math.random() * 2));
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+
+                        }
+                    });
                 }
             }
 
@@ -170,14 +225,14 @@ public class SetMapFragment extends Fragment implements LocationListener {
             }
         });
 
+
     }
 
     public void initPlayerPosition() {
-        ref.child("player/" + PlayerId).addListenerForSingleValueEvent(new ValueEventListener() {
+        ref.child(MapId + "/player/" + PlayerId + "/position").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 PlayerPosition = dataSnapshot.getValue(int.class);
-                System.out.println(PlayerPosition);
             }
 
             @Override
@@ -187,16 +242,14 @@ public class SetMapFragment extends Fragment implements LocationListener {
         });
     }
 
-    public void addingMarker(String title, LatLng latLng, int num) {
-
-
+    public void addingMarker(String title, LatLng latLng, int num,int houseNo,int trap,int playerNo) {
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng)
                 .title(String.valueOf(num))
                 .snippet(title)
                 .draggable(false)
                 .visible(true)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.maps_house));
+                .icon(BitmapDescriptorFactory.fromResource(house[houseNo]));
 
         map.addMarker(markerOptions);
         if (num == PlayerPosition) {
@@ -205,8 +258,19 @@ public class SetMapFragment extends Fragment implements LocationListener {
             markerOptionPlayer.position(playerLatLng)
                     .draggable(false)
                     .visible(true)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.maps_house_player));
+                    .icon(BitmapDescriptorFactory.fromResource(playerIcon[playerNo]));
             map.addMarker(markerOptionPlayer);
+        }
+        if(trap!=6)
+        {
+            LatLng trapLatLng = new LatLng(latLng.latitude - 0.0002, latLng.longitude);
+            MarkerOptions trapMarker = new MarkerOptions();
+            trapMarker.position(trapLatLng)
+                    .title(String.valueOf(num))
+                    .snippet(title)
+                    .draggable(false)
+                    .visible(true)
+                    .icon(BitmapDescriptorFactory.fromResource(trapIcon[trap]));
         }
     }
 
@@ -253,9 +317,7 @@ public class SetMapFragment extends Fragment implements LocationListener {
 
     public boolean checkDuplicate(String name) {
         nameDuplicate = false;
-        System.out.println(nameList.size() + " " + name);
         for (int i = 0; i < nameList.size(); i++) {
-            System.out.println(nameList.get(i));
             if (nameList.get(i).equals(name))
                 nameDuplicate = true;
         }
@@ -287,7 +349,7 @@ public class SetMapFragment extends Fragment implements LocationListener {
                     buildPrice = Integer.parseInt(edtPrice.getText().toString());
                     setBuildName = edtName.getText().toString();
                     count++;
-                    addingMarker(setBuildName, latLng, count);
+                    addingMarker(setBuildName, latLng, count,8,6,0);
                     nameList.add(setBuildName);
                     alertDialog.dismiss();
                     updateData(latLng, count);
@@ -320,23 +382,12 @@ public class SetMapFragment extends Fragment implements LocationListener {
             @Override
             public void onClick(View v) {
                 alertDialog.dismiss();
-                mapRef = ref.child("location/" + edtMapName.getText().toString());
+                MapId = edtMapName.getText().toString();
+                mapRef = ref.child(MapId + "/location");
                 Firebase currentMap = new Firebase("http://brilliant-heat-8278.firebaseio.com/userData/" + PlayerId);
-                currentMap.child("CurrentMap").setValue(edtMapName.getText().toString());
+                currentMap.child("CurrentMap").setValue(MapId);
 
-                ref.child("player/" + PlayerId).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (!dataSnapshot.exists()) {
-                            ref.child("player/" + PlayerId).setValue((int) (Math.random() * count) + 1);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(FirebaseError firebaseError) {
-
-                    }
-                });
+                initPlayerList();
                 initPlayerPosition();
                 InitMarker();
             }
@@ -357,6 +408,8 @@ public class SetMapFragment extends Fragment implements LocationListener {
         build.child("name").setValue(setBuildName);
         build.child("number").setValue(num);
         build.child("price").setValue(buildPrice);
+        build.child("level").setValue(1);
         build.child("owner").setValue("none");
+        build.child("trapType").setValue(6);
     }
 }
